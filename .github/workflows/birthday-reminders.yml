@@ -1,0 +1,88 @@
+name: Birthday Reminders
+
+on:
+  schedule:
+    # Daily reminders at 9:00 AM UTC (10:00 AM BST/11:00 AM CEST)
+    - cron: "0 9 * * *"
+    # Monthly report on 1st of every month at 8:00 AM UTC
+    - cron: "0 8 1 * *"
+
+  # Allow manual triggering for testing
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Run mode"
+        required: true
+        default: "daily"
+        type: choice
+        options:
+          - daily
+          - monthly
+      dry_run:
+        description: "Dry run (test mode)"
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  daily-reminders:
+    if: github.event.schedule == '0 9 * * *' || (github.event.inputs.mode == 'daily' && github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Send daily birthday reminders
+        env:
+          WA_PHONE_ID: ${{ secrets.WA_PHONE_ID }}
+          WA_TOKEN: ${{ secrets.WA_TOKEN }}
+          WA_TEMPLATE: ${{ secrets.WA_TEMPLATE }}
+          WA_LANG: ${{ secrets.WA_LANG }}
+          WA_TO_LIST: ${{ secrets.WA_TO_LIST }}
+          TIMEZONE: ${{ secrets.TIMEZONE }}
+          CSV_PATH: file/CAC-03-SET-BIODATA-FORM.csv
+        run: |
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            go run cmd/main.go -dry
+          else
+            go run cmd/main.go
+          fi
+
+  monthly-report:
+    if: github.event.schedule == '0 8 1 * *' || (github.event.inputs.mode == 'monthly' && github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Send monthly birthday report
+        env:
+          WA_PHONE_ID: ${{ secrets.WA_PHONE_ID }}
+          WA_TOKEN: ${{ secrets.WA_TOKEN }}
+          WA_TEMPLATE: ${{ secrets.WA_TEMPLATE }}
+          WA_LANG: ${{ secrets.WA_LANG }}
+          WA_TO_LIST: ${{ secrets.WA_TO_LIST }}
+          TIMEZONE: ${{ secrets.TIMEZONE }}
+          CSV_PATH: file/CAC-03-SET-BIODATA-FORM.csv
+        run: |
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            go run cmd/main.go -monthly -dry
+          else
+            go run cmd/main.go -monthly
+          fi
