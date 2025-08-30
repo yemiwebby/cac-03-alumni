@@ -29,9 +29,13 @@ type Row struct {
 }
 
 func main() {
-	// Load environment variables from .env file
+	// Load environment variables from .env file if it exists (for local development)
+	// In production (GitHub Actions), environment variables are set directly
 	if err := godotenv.Load(); err != nil {
-		log.Printf("Warning: Error loading .env file: %v", err)
+		// Silently ignore if .env file doesn't exist (normal in production)
+		if !strings.Contains(err.Error(), "no such file or directory") {
+			log.Printf("Warning: Error loading .env file: %v", err)
+		}
 	}
 
 	csvPath := flag.String("csv", envOr("CSV_PATH", "file/CAC-03-SET-BIODATA-FORM.csv"), "path to the CSV file containing biodata")
