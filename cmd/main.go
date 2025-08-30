@@ -44,7 +44,7 @@ func main() {
 	// WhatsApp config
 	phoneID := mustEnv("WA_PHONE_ID")
 	token := mustEnv("WA_TOKEN")
-	template := envOr("WA_TEMPLATE", "birthday_reminder")
+	template := envOr("WA_TEMPLATE", "hello_world")
 	lang := envOr("WA_LANG", "en")
 
 	// Recipients (collectors)
@@ -84,7 +84,6 @@ func main() {
 		return
 	}
 
-	excos := "Excos"
 	for _, h := range hits {
 		iso := fmt.Sprintf("%04d-%02d-%02d", now.Year(), h.MM, h.DD) // message param
 		// Send one message to each collector
@@ -93,7 +92,7 @@ func main() {
 				fmt.Printf("[DRY] to=%s | %s | %s\n", to, h.Name, iso)
 				continue
 			}
-			if err := sendTemplate(phoneID, token, template, lang, to, h.Name, excos, iso); err != nil {
+			if err := sendTemplate(phoneID, token, template, lang, to, h.Name, iso); err != nil {
 				fmt.Printf("send error to %s: %v\n", to, err)
 			} else {
 				fmt.Printf("sent to %s: %s (%s)\n", to, h.Name, iso)
@@ -160,7 +159,7 @@ func readRows(path string) ([]Row, []string) {
 	return out, bad
 }
 
-func sendTemplate(phoneID, token, template, lang, to, name, excos, isoDate string) error {
+func sendTemplate(phoneID, token, template, lang, to, name, isoDate string) error {
 	url := fmt.Sprintf("https://graph.facebook.com/v20.0/%s/messages", phoneID)
 	body := map[string]any{
 		"messaging_product": "whatsapp",
@@ -172,7 +171,6 @@ func sendTemplate(phoneID, token, template, lang, to, name, excos, isoDate strin
 			"components": []map[string]any{{
 				"type": "body",
 				"parameters": []map[string]any{
-					{"type": "text", "text": excos},
 					{"type": "text", "text": name},
 					{"type": "text", "text": isoDate},
 				},
@@ -257,7 +255,6 @@ func sendMonthlyReport(rows []Row, now time.Time, phoneID, token, template, lang
 	birthdayListText := strings.Join(namesList, ", ")
 
 	// Use existing template format
-	excos := "Excos"
 	monthYear := fmt.Sprintf("%s %d", nextMonth.Month().String(), nextMonth.Year())
 
 	for _, to := range toList {
@@ -267,7 +264,7 @@ func sendMonthlyReport(rows []Row, now time.Time, phoneID, token, template, lang
 		}
 
 		// Send monthly report using template but with combined names
-		if err := sendTemplate(phoneID, token, template, lang, to, birthdayListText, excos, monthYear); err != nil {
+		if err := sendTemplate(phoneID, token, template, lang, to, birthdayListText, monthYear); err != nil {
 			fmt.Printf("send monthly report error to %s: %v\n", to, err)
 		} else {
 			fmt.Printf("sent monthly report to %s for %s\n", to, monthYear)
