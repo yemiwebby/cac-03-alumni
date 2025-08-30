@@ -85,17 +85,17 @@ func main() {
 	}
 
 	for _, h := range hits {
-		iso := fmt.Sprintf("%04d-%02d-%02d", now.Year(), h.MM, h.DD) // message param
+		birthdayDate := fmt.Sprintf("%04d-%02d-%02d", now.Year(), h.MM, h.DD) // message param
 		// Send one message to each collector
 		for _, to := range toList {
 			if *dry {
-				fmt.Printf("[DRY] to=%s | %s | %s\n", to, h.Name, iso)
+				fmt.Printf("[DRY] to=%s | Excos | %s | %s\n", to, h.Name, birthdayDate)
 				continue
 			}
-			if err := sendTemplate(phoneID, token, template, lang, to, h.Name, iso); err != nil {
+			if err := sendTemplate(phoneID, token, template, lang, to, "Excos", h.Name, birthdayDate); err != nil {
 				fmt.Printf("send error to %s: %v\n", to, err)
 			} else {
-				fmt.Printf("sent to %s: %s (%s)\n", to, h.Name, iso)
+				fmt.Printf("sent to %s: Excos -> %s (%s)\n", to, h.Name, birthdayDate)
 			}
 			time.Sleep(250 * time.Millisecond)
 		}
@@ -159,8 +159,11 @@ func readRows(path string) ([]Row, []string) {
 	return out, bad
 }
 
-func sendTemplate(phoneID, token, template, lang, to, name, isoDate string) error {
+func sendTemplate(phoneID, token, template, lang, to, param1, param2, param3 string) error {
 	url := fmt.Sprintf("https://graph.facebook.com/v20.0/%s/messages", phoneID)
+	
+	// For templates with image header, we need to include the header component
+	// even though the image is static in the template
 	body := map[string]any{
 		"messaging_product": "whatsapp",
 		"to":                to,
@@ -168,13 +171,27 @@ func sendTemplate(phoneID, token, template, lang, to, name, isoDate string) erro
 		"template": map[string]any{
 			"name":     template,
 			"language": map[string]string{"code": lang},
-			"components": []map[string]any{{
-				"type": "body",
-				"parameters": []map[string]any{
-					{"type": "text", "text": name},
-					{"type": "text", "text": isoDate},
+			"components": []map[string]any{
+				{
+					"type": "header",
+					"parameters": []map[string]any{
+						{
+							"type": "image",
+							"image": map[string]string{
+								"link": "https://via.placeholder.com/800x600.png", // Placeholder for template's static image
+							},
+						},
+					},
 				},
-			}},
+				{
+					"type": "body",
+					"parameters": []map[string]any{
+						{"type": "text", "text": param1},
+						{"type": "text", "text": param2},
+						{"type": "text", "text": param3},
+					},
+				},
+			},
 		},
 	}
 	b, _ := json.Marshal(body)
@@ -259,12 +276,12 @@ func sendMonthlyReport(rows []Row, now time.Time, phoneID, token, template, lang
 
 	for _, to := range toList {
 		if dry {
-			fmt.Printf("[DRY MONTHLY] to=%s | Monthly Report for %s | %s\n", to, monthYear, birthdayListText)
+			fmt.Printf("[DRY MONTHLY] to=%s | Excos | Monthly Report for %s | %s\n", to, monthYear, birthdayListText)
 			continue
 		}
 
-		// Send monthly report using template but with combined names
-		if err := sendTemplate(phoneID, token, template, lang, to, birthdayListText, monthYear); err != nil {
+		// Send monthly report using template with 3 parameters
+		if err := sendTemplate(phoneID, token, template, lang, to, "Excos", fmt.Sprintf("Monthly Report for %s", monthYear), birthdayListText); err != nil {
 			fmt.Printf("send monthly report error to %s: %v\n", to, err)
 		} else {
 			fmt.Printf("sent monthly report to %s for %s\n", to, monthYear)
