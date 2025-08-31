@@ -226,8 +226,9 @@ func check(err error) {
 }
 
 func sendMonthlyReport(rows []Row, now time.Time, phoneID, token, template, lang string, toList []string, dry bool) {
-	// Get next month's birthdays
-	nextMonth := now.AddDate(0, 1, 0)
+	// Get next month's birthdays - fix for month-end edge case
+	// Calculate next month properly to avoid August 31 -> October issue
+	nextMonth := time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, now.Location())
 	targetMonth := int(nextMonth.Month())
 
 	var monthlyBirthdays []Row
