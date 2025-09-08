@@ -7,7 +7,7 @@ on:
     # Monthly report on 1st of every month at 8:00 AM UTC
     - cron: "0 8 1 * *"
 
-  # Allow manual triggering for testing
+  # Allow manual triggering for testing (RESTRICTED: Owner and collaborators only)
   workflow_dispatch:
     inputs:
       mode:
@@ -43,11 +43,28 @@ on:
           - "11" # November
           - "12" # December
 
+# Security: Restrict workflow permissions
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   daily-reminders:
     if: github.event.schedule == '0 9 * * *' || (github.event.inputs.mode == 'daily' && github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
+      # Security: Verify authorized user for manual triggers
+      - name: Check authorization
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [[ "${{ github.actor }}" != "${{ github.repository_owner }}" ]]; then
+            echo "❌ Unauthorized: Only the repository owner can manually trigger this workflow"
+            echo "Current user: ${{ github.actor }}"
+            echo "Repository owner: ${{ github.repository_owner }}"
+            exit 1
+          fi
+          echo "✅ Authorized user: ${{ github.actor }}"
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -69,9 +86,12 @@ jobs:
           TIMEZONE: ${{ secrets.TIMEZONE }}
           CSV_PATH: file/CAC-03-SET-BIODATA-FORM.csv
         run: |
+          echo "🔒 Security: Running as authorized user ${{ github.actor }}"
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            echo "🧪 Running in DRY RUN mode (no messages will be sent)"
             go run cmd/main.go -dry
           else
+            echo "📱 Running in LIVE mode (messages will be sent)"
             go run cmd/main.go
           fi
 
@@ -79,6 +99,18 @@ jobs:
     if: github.event.schedule == '0 8 1 * *' || (github.event.inputs.mode == 'monthly' && github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     steps:
+      # Security: Verify authorized user for manual triggers
+      - name: Check authorization
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [[ "${{ github.actor }}" != "${{ github.repository_owner }}" ]]; then
+            echo "❌ Unauthorized: Only the repository owner can manually trigger this workflow"
+            echo "Current user: ${{ github.actor }}"
+            echo "Repository owner: ${{ github.repository_owner }}"
+            exit 1
+          fi
+          echo "✅ Authorized user: ${{ github.actor }}"
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -100,13 +132,16 @@ jobs:
           TIMEZONE: ${{ secrets.TIMEZONE }}
           CSV_PATH: file/CAC-03-SET-BIODATA-FORM.csv
         run: |
+          echo "🔒 Security: Running as authorized user ${{ github.actor }}"
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            echo "🧪 Running in DRY RUN mode (no messages will be sent)"
             if [ "${{ github.event.inputs.target_month }}" != "0" ]; then
               go run cmd/main.go -monthly -dry -target-month=${{ github.event.inputs.target_month }}
             else
               go run cmd/main.go -monthly -dry
             fi
           else
+            echo "📱 Running in LIVE mode (messages will be sent)"
             if [ "${{ github.event.inputs.target_month }}" != "0" ]; then
               go run cmd/main.go -monthly -target-month=${{ github.event.inputs.target_month }}
             else
