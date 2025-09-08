@@ -240,7 +240,7 @@ func sendMonthlyReport(rows []Row, now time.Time, phoneID, token, template, lang
 	// Calculate next month properly to avoid August 31 -> October issue
 	var nextMonth time.Time
 	var reportMonth int
-	
+
 	if targetMonth > 0 && targetMonth <= 12 {
 		// Use specified target month
 		nextMonth = time.Date(now.Year(), time.Month(targetMonth), 1, 0, 0, 0, 0, now.Location())

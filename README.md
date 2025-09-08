@@ -115,6 +115,17 @@ go run cmd/main.go -monthly
 - `WA_TO_LIST`: Comma-separated list of recipient phone numbers (E.164 format)
 - `TIMEZONE`: Timezone (default: `Africa/Lagos`)
 
+### GitHub Secrets Required
+- `CSV_DATA`: Complete CSV file content (stored securely as encrypted secret)
+- All WhatsApp API credentials (see environment variables above)
+
+### CSV Data Security
+🔐 **CSV data is stored as an encrypted GitHub Secret** (`CSV_DATA`) rather than in the repository files. This provides:
+- **Complete privacy** - No alumni data visible in public repository
+- **Secure access** - Only authorized workflows can access the data
+- **Easy updates** - Update CSV by modifying the GitHub Secret
+- **GitHub Actions compatibility** - File created dynamically during execution
+
 ### CSV Data Format
 The system expects a CSV file with these columns:
 - `FULL NAME (SCHOOL SURNAME FIRST)`

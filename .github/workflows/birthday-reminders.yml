@@ -76,6 +76,15 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      # Security: Create CSV file from encrypted secret
+      - name: Create CSV file from secret
+        run: |
+          echo "🔐 Creating CSV file from encrypted secret..."
+          mkdir -p file
+          echo "${{ secrets.CSV_DATA }}" > file/CAC-03-SET-BIODATA-FORM.csv
+          echo "✅ CSV file created securely"
+          echo "📊 CSV contains $(wc -l < file/CAC-03-SET-BIODATA-FORM.csv) lines"
+
       - name: Send daily birthday reminders
         env:
           WA_PHONE_ID: ${{ secrets.WA_PHONE_ID }}
@@ -121,6 +130,15 @@ jobs:
 
       - name: Download dependencies
         run: go mod download
+
+      # Security: Create CSV file from encrypted secret
+      - name: Create CSV file from secret
+        run: |
+          echo "🔐 Creating CSV file from encrypted secret..."
+          mkdir -p file
+          echo "${{ secrets.CSV_DATA }}" > file/CAC-03-SET-BIODATA-FORM.csv
+          echo "✅ CSV file created securely"
+          echo "📊 CSV contains $(wc -l < file/CAC-03-SET-BIODATA-FORM.csv) lines"
 
       - name: Send monthly birthday report
         env:

@@ -7,6 +7,10 @@
 .DS_Store
 Thumbs.db
 
+# Sensitive data files (CSV data now stored in GitHub Secrets)
+file/
+*.csv
+
 # Go compiled binaries
 main
 *.exe
