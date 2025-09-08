@@ -43,6 +43,7 @@ func main() {
 	tzName := flag.String("tz", envOr("TIMEZONE", "Europe/London"), "IANA timezone")
 	dry := flag.Bool("dry", false, "print instead of sending")
 	monthly := flag.Bool("monthly", false, "send monthly birthday summary instead of daily reminders")
+	targetMonth := flag.Int("target-month", 0, "override target month for monthly reports (1-12, 0=auto)")
 	flag.Parse()
 
 	// WhatsApp config
@@ -68,7 +69,7 @@ func main() {
 	now := time.Now().In(loc)
 
 	if *monthly {
-		sendMonthlyReport(rows, now, phoneID, token, template, lang, toList, *dry)
+		sendMonthlyReport(rows, now, phoneID, token, template, lang, toList, *dry, *targetMonth)
 		return
 	}
 
@@ -134,6 +135,7 @@ func readRows(path string) ([]Row, []string) {
 
 	var out []Row
 	var bad []string
+	seen := make(map[string]bool) // Track duplicates by name+birthday
 
 	for {
 		rec, err := r.Read()
@@ -158,6 +160,14 @@ func readRows(path string) ([]Row, []string) {
 			bad = append(bad, dob)
 			continue
 		}
+
+		// Create a unique key for deduplication
+		key := strings.ToLower(name) + "-" + mm + "-" + dd
+		if seen[key] {
+			continue // Skip duplicate
+		}
+		seen[key] = true
+
 		out = append(out, Row{Name: name, MM: m, DD: d})
 	}
 	return out, bad
@@ -225,15 +235,25 @@ func check(err error) {
 	}
 }
 
-func sendMonthlyReport(rows []Row, now time.Time, phoneID, token, template, lang string, toList []string, dry bool) {
+func sendMonthlyReport(rows []Row, now time.Time, phoneID, token, template, lang string, toList []string, dry bool, targetMonth int) {
 	// Get next month's birthdays - fix for month-end edge case
 	// Calculate next month properly to avoid August 31 -> October issue
-	nextMonth := time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, now.Location())
-	targetMonth := int(nextMonth.Month())
+	var nextMonth time.Time
+	var reportMonth int
+	
+	if targetMonth > 0 && targetMonth <= 12 {
+		// Use specified target month
+		nextMonth = time.Date(now.Year(), time.Month(targetMonth), 1, 0, 0, 0, 0, now.Location())
+		reportMonth = targetMonth
+	} else {
+		// Use next month (default behavior)
+		nextMonth = time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, now.Location())
+		reportMonth = int(nextMonth.Month())
+	}
 
 	var monthlyBirthdays []Row
 	for _, r := range rows {
-		if r.MM == targetMonth {
+		if r.MM == reportMonth {
 			monthlyBirthdays = append(monthlyBirthdays, r)
 		}
 	}

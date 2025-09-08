@@ -23,6 +23,25 @@ on:
         required: true
         default: true
         type: boolean
+      target_month:
+        description: "Target month for monthly reports (1-12, 0=auto)"
+        required: false
+        default: "0"
+        type: choice
+        options:
+          - "0" # Auto (next month)
+          - "1" # January
+          - "2" # February
+          - "3" # March
+          - "4" # April
+          - "5" # May
+          - "6" # June
+          - "7" # July
+          - "8" # August
+          - "9" # September
+          - "10" # October
+          - "11" # November
+          - "12" # December
 
 jobs:
   daily-reminders:
@@ -82,7 +101,15 @@ jobs:
           CSV_PATH: file/CAC-03-SET-BIODATA-FORM.csv
         run: |
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
-            go run cmd/main.go -monthly -dry
+            if [ "${{ github.event.inputs.target_month }}" != "0" ]; then
+              go run cmd/main.go -monthly -dry -target-month=${{ github.event.inputs.target_month }}
+            else
+              go run cmd/main.go -monthly -dry
+            fi
           else
-            go run cmd/main.go -monthly
+            if [ "${{ github.event.inputs.target_month }}" != "0" ]; then
+              go run cmd/main.go -monthly -target-month=${{ github.event.inputs.target_month }}
+            else
+              go run cmd/main.go -monthly
+            fi
           fi
