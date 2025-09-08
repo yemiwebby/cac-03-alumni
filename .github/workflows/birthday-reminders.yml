@@ -78,10 +78,12 @@ jobs:
 
       # Security: Create CSV file from encrypted secret
       - name: Create CSV file from secret
+        env:
+          CSV_CONTENT: ${{ secrets.CSV_DATA }}
         run: |
           echo "🔐 Creating CSV file from encrypted secret..."
           mkdir -p file
-          echo "${{ secrets.CSV_DATA }}" > file/CAC-03-SET-BIODATA-FORM.csv
+          printf '%s\n' "$CSV_CONTENT" > file/CAC-03-SET-BIODATA-FORM.csv
           echo "✅ CSV file created securely"
           echo "📊 CSV contains $(wc -l < file/CAC-03-SET-BIODATA-FORM.csv) lines"
 
@@ -133,10 +135,12 @@ jobs:
 
       # Security: Create CSV file from encrypted secret
       - name: Create CSV file from secret
+        env:
+          CSV_CONTENT: ${{ secrets.CSV_DATA }}
         run: |
           echo "🔐 Creating CSV file from encrypted secret..."
           mkdir -p file
-          echo "${{ secrets.CSV_DATA }}" > file/CAC-03-SET-BIODATA-FORM.csv
+          printf '%s\n' "$CSV_CONTENT" > file/CAC-03-SET-BIODATA-FORM.csv
           echo "✅ CSV file created securely"
           echo "📊 CSV contains $(wc -l < file/CAC-03-SET-BIODATA-FORM.csv) lines"
 
