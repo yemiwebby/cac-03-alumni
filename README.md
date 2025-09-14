@@ -13,6 +13,7 @@ An automated WhatsApp birthday reminder system for the CAC-03 Alumni Association
 ## How It Works
 
 The system reads birthday data from a CSV file and sends WhatsApp messages using the WhatsApp Business API when:
+
 - **Daily**: Someone has a birthday tomorrow (configurable lookahead)
 - **Monthly**: At the start of each month with all birthdays for that month
 
@@ -21,6 +22,7 @@ The system reads birthday data from a CSV file and sends WhatsApp messages using
 ### Manual Trigger Instructions
 
 1. **Navigate to Actions**:
+
    - Go to your repository: `https://github.com/yemiwebby/cac-03-alumni`
    - Click the **"Actions"** tab
    - Select **"Birthday Reminders"** workflow
@@ -31,16 +33,19 @@ The system reads birthday data from a CSV file and sends WhatsApp messages using
 
 ### Configuration Options
 
-#### 📋 **Run Mode**
+#### **Run Mode**
+
 - `daily` - Send daily birthday reminders for tomorrow
 - `monthly` - Send monthly birthday report
 
-#### 🧪 **Dry Run** (Recommended for testing)
+#### **Dry Run** (Recommended for testing)
+
 - `true` - **Test mode** (shows what would be sent without actually sending)
 - `false` - **Live mode** (actually sends WhatsApp messages)
 
-#### 📅 **Target Month** (For Monthly Reports)
-- `0` - **Auto** (next month from current date) - *Default*
+#### **Target Month** (For Monthly Reports)
+
+- `0` - **Auto** (next month from current date) - _Default_
 - `1` - January
 - `2` - February
 - `3` - March
@@ -57,16 +62,19 @@ The system reads birthday data from a CSV file and sends WhatsApp messages using
 ### Example Usage Scenarios
 
 #### Send September Monthly Report
+
 - **Run Mode**: `monthly`
 - **Dry Run**: `true` (test first)
 - **Target Month**: `9`
 
 #### Send Daily Reminder (Test)
+
 - **Run Mode**: `daily`
 - **Dry Run**: `true`
 - **Target Month**: `0` (ignored for daily)
 
 #### Send Next Month Report (Default)
+
 - **Run Mode**: `monthly`
 - **Dry Run**: `false`
 - **Target Month**: `0`
@@ -74,22 +82,26 @@ The system reads birthday data from a CSV file and sends WhatsApp messages using
 ## Automated Scheduling
 
 The system runs automatically:
+
 - **Daily reminders**: Every day at 9:00 AM UTC (10:00 AM WAT)
 - **Monthly reports**: 1st of every month at 8:00 AM UTC (9:00 AM WAT)
 
 ## Local Development
 
 ### Prerequisites
+
 - Go 1.24+
 - WhatsApp Business API credentials
 
 ### Setup
+
 1. Clone the repository
 2. Copy `.env.example` to `.env`
 3. Configure your WhatsApp Business API credentials
 4. Run: `go run cmd/main.go -dry` (test mode)
 
 ### Command Line Options
+
 ```bash
 # Daily reminder for tomorrow (dry run)
 go run cmd/main.go -dry
@@ -108,6 +120,7 @@ go run cmd/main.go -monthly
 ## Configuration
 
 ### Environment Variables
+
 - `WA_PHONE_ID`: WhatsApp Business Phone Number ID
 - `WA_TOKEN`: WhatsApp Business API Access Token
 - `WA_TEMPLATE`: WhatsApp template name (default: `cac_template_birthday`)
@@ -116,24 +129,30 @@ go run cmd/main.go -monthly
 - `TIMEZONE`: Timezone (default: `Africa/Lagos`)
 
 ### GitHub Secrets Required
+
 - `CSV_DATA`: Complete CSV file content (stored securely as encrypted secret)
 - All WhatsApp API credentials (see environment variables above)
 
 ### CSV Data Security
-🔐 **CSV data is stored as an encrypted GitHub Secret** (`CSV_DATA`) rather than in the repository files. This provides:
+
+**CSV data is stored as an encrypted GitHub Secret** (`CSV_DATA`) rather than in the repository files. This provides:
+
 - **Complete privacy** - No alumni data visible in public repository
 - **Secure access** - Only authorized workflows can access the data
 - **Easy updates** - Update CSV by modifying the GitHub Secret
 - **GitHub Actions compatibility** - File created dynamically during execution
 
 ### CSV Data Format
+
 The system expects a CSV file with these columns:
+
 - `FULL NAME (SCHOOL SURNAME FIRST)`
 - `DATE OF BIRTH` (YYYY-MM-DD format)
 
 ## Security & Privacy
 
-⚠️ **Important Security Notes**:
+**Important Security Notes**:
+
 - Repository contains sensitive alumni data (names, birthdates, contact info)
 - Manual workflow triggers are **restricted to repository owner only**
 - WhatsApp API credentials are stored as encrypted GitHub Secrets
@@ -142,9 +161,11 @@ The system expects a CSV file with these columns:
 - See [SECURITY.md](SECURITY.md) for detailed security guidelines
 
 ### Authorization
+
 Only the repository owner can manually trigger workflows. Unauthorized attempts will be logged and blocked.
 
 ### Data Protection
+
 - Personal data is processed according to privacy regulations
 - CSV data includes full names, birth dates, and contact information
 - Regular audits recommended for data accuracy and consent
@@ -153,6 +174,7 @@ Only the repository owner can manually trigger workflows. Unauthorized attempts 
 ## Duplicate Prevention
 
 The system automatically handles duplicate entries by:
+
 - Creating unique keys based on name + birth month + birth day
 - Case-insensitive name matching
 - Skipping subsequent duplicate entries
