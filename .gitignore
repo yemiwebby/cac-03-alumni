@@ -42,3 +42,6 @@ tmp/
 secrets/
 credentials/
 keys/
+
+# Planning and vision documents
+ENHANCED_VISION.md
